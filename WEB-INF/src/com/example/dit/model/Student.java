@@ -11,6 +11,7 @@ public class Student {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
+    @Column(unique = true, nullable = false)
 
     private String studentNumber;
     private String name;
@@ -18,16 +19,16 @@ public class Student {
     private String address;
     private String programmeCode;
 
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToOne(mappedBy = "student", cascade = CascadeType.ALL, orphanRemoval = true)
     private Loan loan;
 
-    public Student(String studentNumber, String name, String phoneNumber, String address, String programmeCode, Loan loan) {
+    public Student(String studentNumber, String name, String phoneNumber, String address, String programmeCode) {
         this.studentNumber = studentNumber;
         this.name = name;
         this.phoneNumber = phoneNumber;
         this.address = address;
         this.programmeCode = programmeCode;
-        this.loan = loan;
+        
     }
 
     public Student() {
@@ -78,12 +79,5 @@ public class Student {
         this.programmeCode = programmeCode;
     }
 
-    @XmlElement
-    public Loan getLoan() {
-        return loan;
-    }
-
-    public void setLoan(Loan loan) {
-        this.loan = loan;
-    }
+   
 }

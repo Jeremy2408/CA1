@@ -1,6 +1,9 @@
+package com.example.dit.model.dao;
+
 import javax.persistence.EntityManager;
 import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
+import com.example.dit.model.Student;
 import java.util.ArrayList;
 import java.util.List;
 

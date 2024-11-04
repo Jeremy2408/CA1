@@ -59,6 +59,71 @@ public class ServiceCRUD {
         loanDAO.merge(loan);
         return Response.status(Response.Status.CREATED).entity(deposit).build();
     }
+    @GET
+    @Path("/json/students")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Student> listStudentsJSON() {
+        return studentDAO.getAllStudents();
+    }
+
+    @GET
+    @Path("/json/student/name/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Student getStudentByNameJSON(@PathParam("name") String name) {
+        return studentDAO.getAllStudents().stream()
+                .filter(s -> s.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+    }
+
+    @GET
+    @Path("/json/loans")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Loan> listLoansJSON() {
+        return loanDAO.getAllLoans();
+    }
+
+    @GET
+    @Path("/json/loan/{loanId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Loan getLoanJSON(@PathParam("loanId") int loanId) {
+        return loanDAO.getLoanByIdWithDeposits(loanId);
+    }
+
+    @GET
+    @Path("/json/deposits")
+    @Produces(MediaType.APPLICATION_JSON)
+    public List<Deposit> listDepositsJSON() {
+        return depositDAO.getAllDeposits();
+    }
+
+    @GET
+    @Path("/json/deposit/{depositId}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Deposit getDepositJSON(@PathParam("depositId") int depositId) {
+        return depositDAO.getAllDeposits().stream()
+                .filter(d -> d.getId() == depositId)
+                .findFirst()
+                .orElse(null);
+    }
+
+    @DELETE
+    @Path("/json/student/name/{name}")
+    @Produces(MediaType.APPLICATION_JSON)
+    public Response deleteStudentByNameJSON(@PathParam("name") String name) {
+        Student student = studentDAO.getAllStudents().stream()
+                .filter(s -> s.getName().equalsIgnoreCase(name))
+                .findFirst()
+                .orElse(null);
+        if (student == null) {
+            return Response.status(Response.Status.NOT_FOUND).build();
+        }
+        studentDAO.removeStudent(student);
+        return Response.status(Response.Status.NO_CONTENT).build();
+    }
+    
+
+
 
 
 

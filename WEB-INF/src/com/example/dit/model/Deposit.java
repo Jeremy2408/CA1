@@ -63,4 +63,19 @@ public class Deposit {
     public void setLoan(Loan loan) {
         this.loan = loan;
     }
+    
+    @XmlElement
+    public int getId() {
+
+        return id;
+
+    }
+
+
+
+    public void setId(int id) {
+
+        this.id = id;
+
+    }
 }

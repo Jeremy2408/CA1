@@ -10,6 +10,10 @@ import java.io.File;
 import java.io.IOException;
 import javax.xml.parsers.ParserConfigurationException;
 import org.xml.sax.SAXException;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class ParserXML {
 
@@ -27,27 +31,56 @@ public class ParserXML {
         NodeList rowList = doc.getElementsByTagName("Row");
         int count = 0;
 
-        for (int i = 0; i < rowList.getLength(); i++) {
+        try {
+            // Establish database connection
+            String url = "jdbc:mysql://localhost:3306/springdb";
+            String user = "root";
+            String password = "root";
+            Connection conn = DriverManager.getConnection(url, user, password);
 
-            Node rowNode = rowList.item(i);
+            String insertSQL = "INSERT INTO emissions (year, scenario, predicted_value,category,gas_units) VALUES (?, ?, ?, ?, ?)";
+            PreparedStatement pstmt = conn.prepareStatement(insertSQL);
 
-            if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
+            for (int i = 0; i < rowList.getLength(); i++) {
+                Node rowNode = rowList.item(i);
 
-                Element elem = (Element) rowNode;
+                if (rowNode.getNodeType() == Node.ELEMENT_NODE) {
+                    Element elem = (Element) rowNode;
 
-                String year = elem.getElementsByTagName("Year").item(0).getTextContent();
-                String scenario = elem.getElementsByTagName("Scenario").item(0).getTextContent();
-                String valueStr = elem.getElementsByTagName("Value").item(0).getTextContent();
+                    String year = elem.getElementsByTagName("Year").item(0).getTextContent();
+                    String scenario = elem.getElementsByTagName("Scenario").item(0).getTextContent();
+                    String valueStr = elem.getElementsByTagName("Value").item(0).getTextContent();
+                    String category = elem.getElementsByTagName("Category__1_3").item(0).getTextContent();
+                    String gas_units = elem.getElementsByTagName("Gas___Units").item(0).getTextContent();
 
-                if (year.equals("2023") && scenario.equals("WEM") && !valueStr.isEmpty()) {
-                    double value = Double.parseDouble(valueStr);
-                    if (value > 0) {
-                        count++;
+                    if (year.equals("2023") && scenario.equals("WEM") && !valueStr.isEmpty()) {
+                        double value = Double.parseDouble(valueStr);
+                        if (value > 0) {
+                            count++;
+
+                            pstmt.setInt(1, Integer.parseInt(year));
+                            pstmt.setString(2, scenario);
+                            pstmt.setDouble(3, value);
+                            pstmt.setString(4, category);
+                            pstmt.setString(5, gas_units);
+                            pstmt.executeUpdate();
+
+                        
+                            System.out.println("Added to database!" );
+
+
+                        }
                     }
                 }
             }
-        }
 
-        System.out.println("Total entries: " + count);
+            System.out.println("Total entries added to database: " + count);
+
+            pstmt.close();
+            conn.close();
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
     }
 }

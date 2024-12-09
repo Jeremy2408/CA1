@@ -5,6 +5,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.File;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.SQLException;
 
 public class ParserJSON {
 
@@ -14,34 +18,35 @@ public class ParserJSON {
             JsonNode rootNode = objectMapper.readTree(new File("GreenhouseGasEmissions.json"));
 
             JsonNode emissionsNode = rootNode.path("Emissions");
-            int count = 0;
+
+            String url = "jdbc:mysql://localhost:3306/springdb";
+            String user = "root";
+            String password = "root";
+            Connection conn = DriverManager.getConnection(url, user, password);
+
+            String updateSQL = "UPDATE emissions SET actual_value = ? WHERE category = ?";
+            PreparedStatement pstmt = conn.prepareStatement(updateSQL);
+
             for (JsonNode emission : emissionsNode) {
                 String category = emission.path("Category").asText();
-                String gasUnits = emission.path("Gas Units").asText();
                 double value = emission.path("Value").asDouble();
 
-                if (value > 0){
-                System.out.println("Category: " + category);
-                System.out.println("Gas Units: " + gasUnits);
-                System.out.println("Value: " + value);
-                System.out.println();
-                count++;
+                if (value > 0) {
+                    pstmt.setDouble(1, value);
+                    pstmt.setString(2, category);
+                    int rowsUpdated = pstmt.executeUpdate();
 
+                    if (rowsUpdated > 0) {
+                        System.out.println("Updated database: Category=" + category + ", Actual Value=" + value);
+                    }
                 }
-
-
             }
 
-            System.out.println("Total number of objects parsed: " + count);
 
-            JsonNode dataNode = rootNode.path("data");
-            String date = dataNode.path("date").asText();
-            String country = dataNode.path("country").asText();
+            pstmt.close();
+            conn.close();
 
-            System.out.println("Date: " + date);
-            System.out.println("Country: " + country);
-
-        } catch (IOException e) {
+        } catch (IOException | SQLException e) {
             e.printStackTrace();
         }
     }

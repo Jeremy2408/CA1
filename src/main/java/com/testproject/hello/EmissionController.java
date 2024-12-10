@@ -28,6 +28,11 @@ public class EmissionController {
         return emissionService.createEmission(emission);
     }
 
+    @PutMapping("/{id}")
+    public EmissionEntity updateEmission(@PathVariable Long id, @RequestBody EmissionEntity emission) {
+        return emissionService.updateEmission(id, emission);
+    }
+
     @DeleteMapping("/{id}")
     public void deleteEmission(@PathVariable Long id) {
         emissionService.deleteEmission(id);

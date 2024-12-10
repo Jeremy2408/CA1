@@ -24,6 +24,10 @@ public class EmissionService {
     public EmissionEntity createEmission(EmissionEntity emission) {
         return emissionRepository.save(emission);
     }
+    public EmissionEntity updateEmission(Long id, EmissionEntity emission) {
+        emission.setId(id); 
+        return emissionRepository.save(emission);
+    }
 
     public void deleteEmission(Long id) {
         emissionRepository.deleteById(id);

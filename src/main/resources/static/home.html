@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+        table, th, td {
+            border: 1px solid #ccc;
+        }
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+        .btn {
+            padding: 10px 20px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+        .btn:hover {
+            background-color: #0056b3;
+        }
+        .form-group {
+            margin-bottom: 15px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Emissions Data</h1>
+        <div class="form-group">
+            <label for="categorySelect">View by Category:</label>
+            <select id="categorySelect">
+                <option value="all">All</option>
+            </select>
+        </div>
+        <table id="emissionsTable">
+            <thead>
+                <tr>
+                    <th>Year</th>
+                    <th>Scenario</th>
+                    <th>Predicted Value</th>
+                    <th>Category</th>
+                    <th>Gas Units</th>
+                    <th>Actual Value</th>
+                    <th>Description</th>
+                </tr>
+            </thead>
+            <tbody>
+
+            </tbody>
+        </table>
+        <button class="btn" id="parseXMLBtn">Parse XML</button>
+        <button class="btn" id="parseJSONBtn">Parse JSON</button>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            let emissionsData = [];
+
+            function populateTable(data) {
+                const tableBody = document.querySelector('#emissionsTable tbody');
+                tableBody.innerHTML = data.map(emission => `
+                    <tr>
+                        <td>${emission.year}</td>
+                        <td>${emission.scenario}</td>
+                        <td>${emission.predicted_value}</td>
+                        <td>${emission.category}</td>
+                        <td>${emission.gas_units}</td>
+                        <td>${emission.actual_value}</td>
+                        <td>${emission.description}</td>
+                        <td><button class="btn btn-delete" data-id="${emission.id}">Delete</button></td>
+
+                    </tr>
+                `).join('');
+            }
+
+            function populateCategorySelect(categories) {
+                const categorySelect = document.getElementById('categorySelect');
+                categorySelect.innerHTML = '<option value="all">All</option>' + categories.map(category => `
+                    <option value="${category}">${category}</option>
+                `).join('');
+            }
+
+            fetch('/emissions')
+                .then(response => response.json())
+                .then(data => {
+                    emissionsData = data;
+                    populateTable(emissionsData);
+
+                    const categories = [...new Set(emissionsData.map(emission => emission.category))];
+                    populateCategorySelect(categories);
+                })
+                .catch(error => console.error('Error fetching emissions data:', error));
+
+            document.getElementById('categorySelect').addEventListener('change', function() {
+                const selectedCategory = this.value;
+                const filteredData = selectedCategory === 'all' ? emissionsData : emissionsData.filter(emission => emission.category === selectedCategory);
+                populateTable(filteredData);
+            });
+
+            document.getElementById('emissionsTable').addEventListener('click', function(event) {
+                if (event.target.classList.contains('btn-delete')) {
+                    const emissionId = event.target.getAttribute('data-id');
+                    fetch(`/emissions/${emissionId}`, { method: 'DELETE' })
+                        .then(response => {
+                            if (!response.ok) {
+                                throw new Error('Network response was not ok');
+                            }
+                            emissionsData = emissionsData.filter(emission => emission.id !== parseInt(emissionId));
+                            populateTable(emissionsData);
+                        })
+                        .catch(error => console.error('Error deleting emission:', error));
+                }
+            });
+
+            document.getElementById('parseXMLBtn').addEventListener('click', function() {
+                fetch('/parse/xml', { method: 'POST' })
+                    .then(response => response.text())
+                    .then(message => {
+                        alert(message);
+                        location.reload(); 
+                    })
+                    .catch(error => console.error('Error parsing XML:', error));
+            });
+
+            document.getElementById('parseJSONBtn').addEventListener('click', function() {
+                fetch('/parse/json', { method: 'POST' })
+                    .then(response => response.text())
+                    .then(message => {
+                        alert(message);
+                        location.reload(); 
+                    })
+                    .catch(error => console.error('Error parsing JSON:', error));
+            });
+        });
+    </script>
+</body>
+</html>
